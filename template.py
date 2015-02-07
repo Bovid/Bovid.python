@@ -91,7 +91,14 @@ class Jison:#extends
 						if self.terminals[p] is not None and p > 2:
 							expected.push(self.terminals[p].name)
 
-					err_str = "Parser error on line " + self.yy.line_no + ":\n" + self.show
+					if symbol.index in self.terminals:
+						got = self.terminals[symbol.index].name
+					else:
+						got = "NOTHING"
+
+					err_str = "Parser error on line " + self.yy.line_no + ":\n" + self.show + "\nExpecting " + (", ".join(expected)) + ". got '" + got + "'"
+
+					self.parse_error(self, err_str, ParserError())
 					
 
 
@@ -182,7 +189,41 @@ class Jison:#extends
 			return '...' + result
 		return result
 
-	def
+	def upcoming_input(self):
+		if self.done == false:
+			next = self.match
+			next_len = len(next)
+			if next_len < 20:
+				next += self.input.to_string()[:20 - next_len]
+			else:
+				if next_len > 20:
+					next = next[:-20] + '...'
+
+			return next.replace('\n', '')
+
+	def show_position(self):
+		pre = self.past_input()
+		c = '-' * len(pre)
+
+		return pre + self.upcoming_input() + '\n' + c + '^'
+
+	def next(self):
+		if len(self.unput_stack) > 0:
+			this.yy = yy
+
+		if self.done:
+			return self.eof
+
+		if self.input.done:
+			self.done = true
+
+		if self.more is false:
+			self.yy.text = ''
+			self.match = ''
+
+		rules = self.current_rules()
+
+
 
 class ParserLocation:
 	first_line = 1
@@ -205,8 +246,6 @@ class ParserValue:
 	loc = None
 	line_no = 0
 	text = None
-
-
 
 
 class ParserCachedAction:
@@ -240,15 +279,49 @@ class ParserSymbol:
 	def add_action(self, parser_action):
 		self.symbols[parser_action.index] = self.symbols_by_name[parser_action.name] = parser_action
 
+class ParserError:
+	text = None
+	state = None
+	symbol = None
+	line_no = 0
+	loc = None
+	expected = None
+
+	def __init__(self, text, state, symbol, line_no, loc, expected):
+		self.text = text
+		self.state = state
+		self.symbol = symbol
+		self.line_no = line_no
+		self.loc = loc
+		self.expected = expected
+
+class LexerError:
+	text = None
+	token = None
+	line_no = 0
+
+	def __init__(self, text, token, line_no):
+		self.text = text
+		self.token = token
+		self.line_no
+
+class ParserState:
+	index = 0
+	actions = []
+
+	def __init__(self, index):
+		self.index = index
+
+	def set_actions(self, actions):
+		self.actions = actions
 
 class ParserRange:
-	x = None
-	y = None
+	x = 0
+	y = 0
 
 	def __init__(self, x, y):
 		self.x = x
 		self.y = y
-
 
 class InputReader:
 	input = None
